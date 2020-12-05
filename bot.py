@@ -15,6 +15,7 @@ vote_in_progress = False
 users_in_channel = []
 votes = {}
 
+
 @bot.command(name='roll_dice', help='Simulates rolling dice.')
 async def roll_dice(ctx, number_of_dice=1, number_of_sides=6):
     dice = [
@@ -36,7 +37,7 @@ async def list_online(ctx):
             await ctx.send(user.name+"#"+user.discriminator)
             
 async def voting_time():
-    await asyncio.sleep(10)
+    await asyncio.sleep(60)
     global vote_in_progress
     vote_in_progress = False
 
@@ -56,7 +57,7 @@ async def vote(ctx, target):
         vote_in_progress = True
         done, pending = await asyncio.wait(
             [voting_time()], return_when=asyncio.FIRST_COMPLETED)
-        await ctx.send(f'Vote has ended:')
+        await ctx.send(f'Vote has ended')
 
 @bot.command(name='y', help='Vote for something')
 async def vote_for(ctx):
@@ -103,9 +104,13 @@ async def votekick(ctx, target):
             #kick someone if he got >75% of votes  
             await vote(ctx, target)
             if sum(votes.values())/len(votes.values()) >= 0.75:
-                votes.clear()
-                await user.edit(voice_channel=None)
-                await ctx.send(f'{user.name} was kicked')
+                if len(votes)>1:
+                    votes.clear()
+                    await user.edit(voice_channel=None)
+                    await ctx.send(f'{user.name} was kicked')
+                else:
+                    votes.clear()
+                    await ctx.send(f'More than 1 vote required in order to kick')
             else:
                 votes.clear()
                 users_in_channel.clear()
@@ -120,7 +125,7 @@ async def votekick(ctx):
     await ctx.send(vote_in_progress)
 
 @bot.command(name='usersinvoicechannel', help='Vote for kicking someone')
-async def votekick(ctx):
+async def list_users_in_channel(ctx):
     current_voice_channel = ctx.author.voice.channel
     users_in_channel = current_voice_channel.members
     await ctx.send(users_in_channel)
